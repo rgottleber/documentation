@@ -59,6 +59,26 @@ The env variables listed here are explicitly supported and current as of Chainli
   - [BLOCK_HISTORY_ESTIMATOR_BLOCK_HISTORY_SIZE](#block_history_estimator_block_history_size)
   - [BLOCK_HISTORY_ESTIMATOR_BLOCK_DELAY](#block_history_estimator_block_delay)
   - [BLOCK_HISTORY_ESTIMATOR_TRANSACTION_PERCENTILE](#block_history_estimator_transaction_percentile)
+- [Debugging](#debugging)
+  - [Logging](#logging)
+    - [JSON_CONSOLE](#json_console)
+    - [LOG_LEVEL](#log_level)
+    - [LOG_SQL](#log_sql)
+    - [LOG_SQL_MIGRATIONS](#log_sql_migrations)
+    - [LOG_TO_DISK](#log_to_disk)
+  - [Nurse service (auto-pprof)](#nurse-service-auto-pprof)
+    - [AUTO_PPROF_ENABLED](#auto_pprof_enabled)
+    - [AUTO_PPROF_PROFILE_ROOT](#auto_pprof_profile_root)
+    - [AUTO_PPROF_POLL_INTERVAL](#auto_pprof_poll_interval)
+    - [AUTO_PPROF_GATHER_DURATION](#auto_pprof_gather_duration)
+    - [AUTO_PPROF_GATHER_TRACE_DURATION](#auto_pprof_gather_trace_duration)
+    - [AUTO_PPROF_MAX_PROFILE_SIZE](#auto_pprof_max_profile_size)
+    - [AUTO_PPROF_CPU_PROFILE_RATE](#auto_pprof_cpu_profile_rate)
+    - [AUTO_PPROF_MEM_PROFILE_RATE](#auto_pprof_mem_profile_rate)
+    - [AUTO_PPROF_BLOCK_PROFILE_RATE](#auto_pprof_block_profile_rate)
+    - [AUTO_PPROF_MUTEX_PROFILE_FRACTION](#auto_pprof_mutex_profile_fraction)
+    - [AUTO_PPROF_MEM_THRESHOLD](#auto_pprof_mem_threshold)
+    - [AUTO_PPROF_GOROUTINE_THRESHOLD](#auto_pprof_goroutine_threshold)
 - [Other env vars](#other-env-vars)
   - [ENABLE_EXPERIMENTAL_ADAPTERS](#enable_experimental_adapters)
   - [ENABLE_LEGACY_JOB_PIPELINE](#enable_legacy_job_pipeline)
@@ -83,11 +103,6 @@ The env variables listed here are explicitly supported and current as of Chainli
   - [TELEMETRY_INGRESS_URL](#telemetry_ingress_url)
   - [TELEMETRY_INGRESS_SERVER_PUB_KEY](#telemetry_ingress_server_pub_key)
   - [TELEMETRY_INGRESS_LOGGING](#telemetry_ingress_logging)
-  - [JSON_CONSOLE](#json_console)
-  - [LOG_LEVEL](#log_level)
-  - [LOG_SQL](#log_sql)
-  - [LOG_SQL_MIGRATIONS](#log_sql_migrations)
-  - [LOG_TO_DISK](#log_to_disk)
   - [MIN_INCOMING_CONFIRMATIONS](#min_incoming_confirmations)
   - [ETH_NONCE_AUTO_SYNC](#eth_nonce_auto_sync)
   - [ETH_FINALITY_DEPTH](#eth_finality_depth)
@@ -420,6 +435,102 @@ Setting this number higher will cause Chainlink to select higher gas prices.
 
 Setting it lower will tend to set lower gas prices.
 
+# Debugging
+
+## Logging
+
+### JSON_CONSOLE
+
+- Default: `"false"`
+
+Set to true to enable JSON logging. Otherwise will log in a human-friendly console format.
+
+### LOG_LEVEL
+
+- Default: `"info"`
+
+The `LOG_LEVEL` environment variable determines both what is printed on the screen and what is written to the logfile, located at `$ROOT/log.jsonl`.
+
+The available options are:
+- "debug"
+- "info"
+- "warn"
+- "error"
+- "panic"
+
+### LOG_SQL
+
+- Default: `"false"`
+
+Tells Chainlink to log all SQL statements made using the default logger.
+
+### LOG_SQL_MIGRATIONS
+
+- Default: `"true"`
+
+Tells Chainlink to log all SQL migrations made using the default logger.
+
+### LOG_TO_DISK
+
+- Default: `"true"`
+
+Enables or disables the node writing to the `$ROOT/log.jsonl` file.
+
+## Nurse service (auto-pprof)
+
+The Chainlink node is equipped with an internal "nurse" service that can perform automatic `pprof` profiling when the certain resource thresholds are exceeded (currently, memory and goroutine count). These profiles are saved to disk to facilitate fine-grained debugging of performance-related issues. Generally speaking, if you notice that your node has begun to accumulate profiles, you should forward them to the Chainlink team.
+
+**Adventurous node operators who are interested in understanding these profiles are encouraged to read [this guide](https://jvns.ca/blog/2017/09/24/profiling-go-with-pprof/).**
+
+### AUTO_PPROF_ENABLED
+
+Set to `true` to enable the automatic profiling service. Defaults to `false`.
+
+### AUTO_PPROF_PROFILE_ROOT
+
+The location on disk where pprof profiles will be stored. Defaults to `$CHAINLINK_ROOT`.
+
+### AUTO_PPROF_POLL_INTERVAL
+
+The interval at which the node's resources are checked. Defaults to `10s`.
+
+### AUTO_PPROF_GATHER_DURATION
+
+The duration for which profiles are gathered when profiling is kicked off. Defaults to `10s`.
+
+### AUTO_PPROF_GATHER_TRACE_DURATION
+
+The duration for which traces are gathered when profiling is kicked off. This is separately configurable because traces are significantly larger than other types of profiles. Defaults to `5s`.
+
+### AUTO_PPROF_MAX_PROFILE_SIZE
+
+The maximum amount of disk space that profiles may consume before profiling is disabled. Defaults to `100mb`.
+
+### AUTO_PPROF_CPU_PROFILE_RATE
+
+See https://pkg.go.dev/runtime#SetCPUProfileRate. Defaults to `1`.
+
+### AUTO_PPROF_MEM_PROFILE_RATE
+
+See https://pkg.go.dev/runtime#pkg-variables. Defaults to `1`.
+
+### AUTO_PPROF_BLOCK_PROFILE_RATE
+
+See https://pkg.go.dev/runtime#SetBlockProfileRate. Defaults to `1`.
+
+### AUTO_PPROF_MUTEX_PROFILE_FRACTION
+
+See https://pkg.go.dev/runtime#SetMutexProfileFraction. Defaults to `1`.
+
+### AUTO_PPROF_MEM_THRESHOLD
+
+The maximum amount of memory the node can actively consume before profiling begins. Defaults to `4gb`.
+
+### AUTO_PPROF_GOROUTINE_THRESHOLD
+
+The maximum number of actively-running goroutines the node can spawn before profiling begins. Defaults to `5000`.
+
+
 # Other env vars
 
 ## ENABLE_EXPERIMENTAL_ADAPTERS
@@ -571,43 +682,6 @@ The public key of the telemetry server.
 - Default: `"false"`
 
 Toggles verbose logging of the raw telemetry messages being sent.
-
-## JSON_CONSOLE
-
-- Default: `"false"`
-
-Set to true to enable JSON logging. Otherwise will log in a human-friendly console format.
-
-## LOG_LEVEL
-
-- Default: `"info"`
-
-The `LOG_LEVEL` environment variable determines both what is printed on the screen and what is written to the logfile, located at `$ROOT/log.jsonl`.
-
-The available options are:
-- "debug"
-- "info"
-- "warn"
-- "error"
-- "panic"
-
-## LOG_SQL
-
-- Default: `"false"`
-
-Tells Chainlink to log all SQL statements made using the default logger.
-
-## LOG_SQL_MIGRATIONS
-
-- Default: `"true"`
-
-Tells Chainlink to log all SQL migrations made using the default logger.
-
-## LOG_TO_DISK
-
-- Default: `"true"`
-
-Enables or disables the node writing to the `$ROOT/log.jsonl` file.
 
 ## MIN_INCOMING_CONFIRMATIONS
 
@@ -810,3 +884,10 @@ The default timeout for HTTP requests.
 `10ms`
 `1h15m`
 `42m30s`
+
+> ⚠️ NOTE
+> Some env vars require a file size. A file size string is an unsigned integer (123) or float (12.3) followed by a unit suffix. Valid file size units are "b", "kb", "mb", "gb", and "tb". If the unit is omitted, it is assumed to be "b" (bytes). Capitalization does not matter. Some examples:
+
+`123gb`
+`1.2TB`
+`12345`
