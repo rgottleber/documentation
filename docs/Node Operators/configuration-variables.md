@@ -472,7 +472,7 @@ Tells Chainlink to log all SQL migrations made using the default logger.
 
 ### LOG_TO_DISK
 
-- Default: `"true"`
+- Default: `"false"`
 
 Enables or disables the node writing to the `$ROOT/log.jsonl` file.
 
